@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('records.edit')}}">Add</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <form method="post" action="/records/edit_lookup">
+    <label for="editDate">Date: </label>
+    <input type="date" name="editDate" id="editDate" value={{dateval}} required>
+    <label for="editDepartment">Department: </label>
+    <select name="editDepartment" id="editDepartment" required>
+        {% for (dname,) in dnames %}
+          {% if depval == dname %}
+            <option value={{dname}} selected>{{dname}}</option>
+          {% else %}
+            <option value={{dname}}>{{dname}}</option>
+          {% endif %}
+        {% endfor %}
+    </select>
+    <input type="submit" value="Search">
+  </form>
+  <form class="" action="{{url_for('records.edit', editDate=dateval, editDepartment=depval)}}" method="post">
+    <label for="editUnitCount">Units: </label>
+    <input name="editUnitCount" id="editUnitCount" value={{unitval}} required>
+    {% macro input(name, s, value='', type='text') -%}
+      <input type="{{ type }}" name="{{ name + s }}" value="{{ value|e }}" required><br>
+    {%- endmacro %}
+    <div class="worker-box">
+      <div>
+        <label>Number of Workers: </label><br>
+        {% for w in wcountval %}
+          {{ input('mp', loop.index|string, w) }}
+        {% endfor %}
+        {% for r in session['add_wc_field_num'] %}
+          {{ input('mp', r) }}
+        {% endfor %}
+      </div>
+      <div>
+        <label>Hours: </label><br>
+        {% for w in whoursval %}
+          {{ input('mpr', loop.index|string, w) }}
+        {% endfor %}
+        {% for r in session['add_wh_field_num'] %}
+          {{ input('mpr', r) }}
+        {% endfor %}
+      </div>
+    </div>
+
+    <a href="{{ url_for('records.edit', editDate=dateval, editDepartment=depval) }}">Add Workers</a>
+    <input type="submit" value="Save Changes">
+  </form>
+{% endblock %}

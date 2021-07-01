@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Data Display{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="startdate">Start Date: </label>
+    <input type="date" name="startdate" id="startdate" required>
+    <label for="enddate">End Date: </label>
+    <input type="date" name="enddate" id="enddate" required>
+    <label>Departments: </label>
+    {% for (item,) in dnames %}
+      <span>
+        <input type="checkbox" id={{item}} name={{item}} value={{item}} checked>
+        <label for={{item}}>{{item}}</label>
+      </span>
+    {% endfor %}
+    <input type="submit" value="Display">
+  </form>
+{% endblock %}

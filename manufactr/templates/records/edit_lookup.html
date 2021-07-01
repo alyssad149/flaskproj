@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Edit{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('records.edit_lookup')}}">Add</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="editDate">Date: </label>
+    <input type="date" name="editDate" id="editDate" required>
+    <label for="editDepartment">Department: </label>
+    <select name="editDepartment" id="editDepartment" required>
+        <option disabled selected value> -- select an option -- </option>
+        {% for (dname,) in dnames %}
+          <option value={{dname}}>{{dname}}</option>
+        {% endfor %}
+    </select>
+    <input type="submit" value="Search">
+  </form>
+{% endblock %}

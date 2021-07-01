@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Register{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="username">Username</label>
+    <input name="username" id="username" required>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+    <select name="roleType" id="roleType" required>
+      <option value="Admin">Admin</option>
+      <option value="Manager">Manager</option>
+      <option value="GroupLead">Group Leader</option>
+    </select>
+    <select name="department" id="department">
+        <option disabled selected value> -- select an option -- </option>
+        <option value="Group1">Group1</option>
+        <option value="Group2">Group2</option>
+        <option value="Group3">Group3</option>
+    </select>
+    <input type="submit" value="Register">
+  </form>
+{% endblock %}

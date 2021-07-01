@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Main Menu{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <a class="action" href="{{ url_for('records.display')}}">Display</a>
+  <a class="action" href="{{ url_for('records.add')}}">Add</a>
+  <a class="action" href="{{ url_for('records.edit_lookup')}}">Edit</a>
+  <a class="action" href="{{ url_for('records.delete')}}">Delete</a>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}{{startdate}} to {{enddate}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <div class='range_totals'>
+    <h2>Totals</h2>
+    {{sendStringTotals}}
+  </div>
+
+  <div class='individual_dates'>
+    <h2>Totals by Date</h2>
+    {{sendString}}
+  </div>
+
+{% endblock %}

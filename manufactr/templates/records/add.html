@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Records{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="addDate">Date: </label>
+    <input type="date" name="addDate" id="addDate" required>
+    <label for="addDepartment">Department: </label>
+    <select name="addDepartment" id="addDepartment" required>
+        <option disabled selected value> -- select an option -- </option>
+        {% for (item,) in dnames %}
+          <option value={{item}}>{{item}}</option>
+        {% endfor %}
+    </select>
+    <label for="addUnitCount">Units: </label>
+    <input name="addUnitCount" id="addUnitCount" required>
+    {% macro input(name, s, value='', type='text') -%}
+      <input type="{{ type }}" name="{{ name + s }}" value="{{ value|e }}" required><br>
+    {%- endmacro %}
+    <div class="worker-box">
+      <div>
+        <label>Number of Workers: </label><br>
+        {% for r in rnum %}
+          {{ input('mp', r) }}
+        {% endfor %}
+      </div>
+      <div>
+        <label>Hours: </label><br>
+        {% for r in rnum %}
+          {{ input('mpr', r) }}
+        {% endfor %}
+      </div>
+    </div>
+
+    <a href="{{ url_for('records.addWorker', newrnum=rnum) }}">Add Workers</a>
+    <input type="submit" value="Submit">
+  </form>
+{% endblock %}
