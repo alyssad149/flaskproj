@@ -97,4 +97,8 @@ def login_required(view):
 
     return wrapped_view
 
-# TODO: make permissions wrapper functions if necessary
+# # TODO: make permissions wrapper functions if necessary
+# def permissions(view):
+#     @functools.wraps(view)
+#     def wrapped_view(**kwargs):
+#         if g.permission == "Admin"

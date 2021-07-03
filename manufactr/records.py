@@ -146,8 +146,9 @@ def resultsDisplay():
                                             <th>Hours per Worker: </th>
                                             <th>Hours: </th>
                                         </tr>
-                                    </table>'''.format(totalHourSumProduct)
-                groupDisplay += groupDisplay1 + groupDisplay2 + groupDisplayBody
+                                        {}
+                                    </table>'''.format(totalHourSumProduct, groupDisplayBody)
+                groupDisplay += groupDisplay1 + groupDisplay2
                 groupDisplay1, groupDisplay2, groupDisplayBody = "", "", ""
         dateDisplay = "<div class='datedisplay'><h3>{}</h3><div class='dategroupdisplay'>{}</div></div>".format(k, groupDisplay)
         sendString += dateDisplay
@@ -278,9 +279,7 @@ def edit():
     (workerCount, workerHours) = splitToArray(nworkers)
     if (session['first_access_wfield'] and len(session['add_wc_field_num']) == 0):
         session['first_access_wfield'] = False
-        print('wy')
     else:
-        print('do')
         append_item = str(len(session['add_wc_field_num'])+len(workerCount)+1)
         hold_wc = session['add_wc_field_num']
         hold_wc.append(append_item)
@@ -297,6 +296,11 @@ def edit():
                         WHERE ddid = (SELECT id FROM manufacturinglog
                             WHERE logdate=? AND department=?)''',
                             (date, department)).fetchall()
+        db.execute('''UPDATE manufacturinglog
+                        SET unitcount = ?
+                        WHERE logdate = ? AND department = ?;''',
+        (units, date, department))
+        db.commit()
         for r in range(1, len(workerCount)+1):
             manpower = request.form['mp'+str(r)]
             mprates = request.form['mpr'+str(r)]
@@ -304,6 +308,7 @@ def edit():
                             SET manpowercount = ?, manpowerrate = ?
                             WHERE logorder = ?;''',
             (manpower, mprates, (updateDB[r-1])[0]))
+            db.commit()
         totalLength = range(len(workerCount)+1, len(workerCount) + len(session['add_wc_field_num']))
         for r in totalLength:
             manpower = request.form['mp'+str(r)]
@@ -312,7 +317,7 @@ def edit():
                             SELECT id, ? AS manpowercount, ? AS manpowerrate
                             FROM manufacturinglog WHERE logdate = ? AND department = ?''',
                             (manpower, mprates, date, department))
-        db.commit()
+            db.commit()
         error = None
 
         if not date:
@@ -341,26 +346,99 @@ def splitToArray(originalArray):
 @bp.route('/delete', methods=('GET', 'POST'))
 @login_required
 def delete():
+    db = get_db()
+
+    dnames = db.execute('''SELECT department_name
+                        FROM department_names''').fetchall()
+
     if request.method == 'POST':
-        date = request.form['addDate']
-        department = request.form['addDepartment']
-        unitCount = request.form['addUnitCount']
+        date = request.form['deleteDate']
+        department = request.form['deleteDepartment']
+
         error = None
 
         if not date:
             error = 'Date is required.'
 
-        if not unitCount:
-            error = 'Unit count is required.'
+        if not department:
+            error = 'Department is required.'
 
         if error is not None:
             flash(error)
         else:
-            db = get_db()
-            db.execute('''INSERT INTO manufacturinglog (logdate, department, unitcount)
-                            VALUES (?, ?, ?)''',
-                            (date, department, unitCount))
-            db.commit()
-            return redirect(url_for('records.index'))
+            idUnit = db.execute('''SELECT id, unitcount
+                            FROM manufacturinglog
+                            WHERE logdate = ? AND department = ?;''',
+                            (date, department)).fetchone()
+            nworkers = db.execute('''SELECT manpowercount, manpowerrate
+                                    FROM manpowerlog
+                                    WHERE ddid = ?
+                                    ORDER BY logorder''',
+                                    (idUnit[0],)).fetchall()
+            workersString = ""
+            for n in nworkers:
+                (mpc, mpr) = n
+                workersString += "<tr><td>{}</td><td>{}</td></tr>".format(mpc, mpr)
 
-    return render_template('records/delete.html')
+            infoDisplayString = '''<div>
+                                    <p>Units: {}</p>
+                                    <table>
+                                        <tr><th>Number of Workers:</th><th>Hours</th></tr>
+                                        {}
+                                    </table>
+                                </div>'''.format(str(idUnit[1]), workersString)
+            return redirect(url_for('records.delete_information', dateval=date, depval=department,
+            infoDisplayHTML=infoDisplayString, dnames=dnames))
+
+    return render_template('records/delete.html', dnames=dnames)
+
+@bp.route('delete_info', methods=('GET', 'POST'))
+@login_required
+def delete_information():
+    db = get_db()
+    dnames = db.execute('''SELECT department_name
+                        FROM department_names''').fetchall()
+    infoDisplayHTML = Markup(request.args.get('infoDisplayHTML'))
+    date = request.args.get('dateval')
+    department = request.args.get('depval')
+    if request.method == 'POST':
+        return redirect(url_for('records.delete_confirmation', deleteDate=date, deleteDepartment=department, infoDisplayHTML=infoDisplayHTML, dnames=dnames))
+    return render_template('records/delete_info.html', dateval=date, depval=department,
+    infoDisplayHTML=infoDisplayHTML, dnames=dnames)
+
+
+@bp.route('/delete_confirmation', methods=('GET', 'POST'))
+@login_required
+def delete_confirmation():
+    db = get_db()
+    dnames = db.execute('''SELECT department_name
+                        FROM department_names''').fetchall()
+    date = request.args.get('deleteDate')
+    department = request.args.get('deleteDepartment')
+    infoDisplayString = request.args.get('infoDisplayHTML')
+    infoDisplayHTML = Markup(infoDisplayString)
+
+    if request.method == 'POST':
+        return redirect(url_for('records.delete_success', dateval=date, depval=department))
+
+    return render_template('records/delete_confirmation.html', dateval=date, depval=department,
+    infoDisplayHTML=infoDisplayHTML, dnames=dnames)
+
+
+@bp.route('/delete_success', methods=('GET', 'POST'))
+@login_required
+def delete_success():
+    db = get_db()
+    date = request.args.get('dateval')
+    department = request.args.get('depval')
+    print(date)
+    print("gets to these")
+    db.execute('''DELETE FROM manpowerlog
+                    WHERE ddid = (SELECT id FROM manufacturinglog
+                    WHERE logdate = ? AND  department = ?);''',
+                    (date, department))
+    db.execute('''DELETE FROM manufacturinglog
+                    WHERE logdate = ? AND department = ?;''',
+                    (date, department))
+    db.commit()
+    return render_template('records/delete_success.html', date=date, department=department)

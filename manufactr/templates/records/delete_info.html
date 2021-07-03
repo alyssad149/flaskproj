@@ -8,16 +8,23 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
-    <label for="editDate">Date: </label>
-    <input type="date" name="deleteDate" id="deleteDate" required>
+  <form method="post" action="/records/delete">
+    <label for="deleteDate">Date: </label>
+    <input type="date" name="deleteDate" id="deleteDate" value="{{dateval}}" required>
     <label for="deleteDepartment">Department: </label>
     <select name="deleteDepartment" id="deleteDepartment" required>
-        <option disabled selected value> -- select an option -- </option>
-        {% for (dname,) in dnames %}
+      {% for (dname,) in dnames %}
+        {% if depval == dname %}
+          <option value="{{dname}}" selected>{{dname}}</option>
+        {% else %}
           <option value="{{dname}}">{{dname}}</option>
-        {% endfor %}
+        {% endif %}
+      {% endfor %}
     </select>
     <input type="submit" value="Search">
+  </form>
+  {{infoDisplayHTML}}
+  <form method="post">
+    <input type="submit" value="Delete">
   </form>
 {% endblock %}
