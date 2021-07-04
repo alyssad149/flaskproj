@@ -25,8 +25,8 @@
   </form>
   <form class="" action="{{url_for('records.edit', editDate=dateval, editDepartment=depval)}}" method="post">
     <label for="editUnitCount">Units: </label>
-    <input name="editUnitCount" id="editUnitCount" value={{unitval}} required>
-    {% macro input(name, s, value='', type='text') -%}
+    <input type="number" name="editUnitCount" id="editUnitCount" value={{unitval}} required>
+    {% macro input(name, s, value='', type='number') -%}
       <input type="{{ type }}" name="{{ name + s }}" value="{{ value|e }}" required><br>
     {%- endmacro %}
     <div class="worker-box">

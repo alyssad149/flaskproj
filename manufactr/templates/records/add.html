@@ -19,8 +19,8 @@
         {% endfor %}
     </select>
     <label for="addUnitCount">Units: </label>
-    <input name="addUnitCount" id="addUnitCount" required>
-    {% macro input(name, s, value='', type='text') -%}
+    <input name="addUnitCount" id="addUnitCount" type="number" required>
+    {% macro input(name, s, value='', type='number') -%}
       <input type="{{ type }}" name="{{ name + s }}" value="{{ value|e }}" required><br>
     {%- endmacro %}
     <div class="worker-box">
