@@ -34,9 +34,10 @@ def register():
             )
             if(roleType == 'GroupLead'):
                 department = request.form['department']
+                print(department)
                 db.execute('''INSERT INTO group_lead_department (id, department)
                                 SELECT id, ? AS department FROM user WHERE username = ?;''',
-                                (username, department))
+                                (department, username))
             db.commit()
             return redirect(url_for('auth.login'))
 
@@ -96,9 +97,3 @@ def login_required(view):
         return view(**kwargs)
 
     return wrapped_view
-
-# # TODO: make permissions wrapper functions if necessary
-# def permissions(view):
-#     @functools.wraps(view)
-#     def wrapped_view(**kwargs):
-#         if g.permission == "Admin"

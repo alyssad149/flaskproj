@@ -29,17 +29,19 @@ def index():
 @login_required
 def display():
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                            FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     if request.method == 'POST':
         startdate = request.form['startdate']
         enddate = request.form['enddate']
-        db = get_db()
-        dnames = db.execute('''SELECT department_name
-                                FROM department_names''').fetchall()
         checkedDepartment = []
         for (d,) in dnames:
-            checkedDepartment.append(request.form[d])
+            checkedDepartment.append(request.form.get(d))
 
         error = None
 
