@@ -20,7 +20,7 @@ def index():
         db = get_db()
         dnames = db.execute('''SELECT department_name
                                 FROM department_names''').fetchall()
-        return render_template('records/display.html', dnames=dnames)
+        return redirect(url_for('records.display'))
     else:
         return render_template('records/index.html')
 
@@ -178,14 +178,26 @@ def add():
     # only pass array of strings
     rnum = ['1']
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                            FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     if request.method == 'POST':
         date = request.form['addDate']
         department = request.form['addDepartment']
         units = request.form['addUnitCount']
         manpower = request.form['mp1']
         mprates = request.form['mpr1']
+
+        checkExists = db.execute('''SELECT id FROM manufacturinglog
+                    WHERE logdate = ? AND department = ?;''', (date, department)).fetchone()
+
+        if checkExists != None:
+            flash('Record exists. Please use edit to make changes.')
+            return redirect(url_for('records.add'))
 
         db.execute('''INSERT INTO manufacturinglog (logdate, department, unitcount)
                         VALUES (?, ?, ?);''',
@@ -203,8 +215,13 @@ def add():
 @bp.route('/addWorker', methods=('GET', 'POST'))
 def addWorker():
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                            FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     # rnum is array of strings
     rnum = request.args.getlist('newrnum')
     rnum.append(str(len(rnum)+1))
@@ -235,15 +252,28 @@ def addWorker():
 @login_required
 def edit_lookup():
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                            FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     session['add_wc_field_num'] = []
     session['add_wh_field_num'] = []
     session['first_access_wfield'] = True
     if request.method == 'POST':
         date = request.form['editDate']
         department = request.form['editDepartment']
+
+        checkExists = db.execute('''SELECT id FROM manufacturinglog
+                    WHERE logdate = ? AND department = ?;''', (date, department)).fetchone()
+
+
         error = None
+
+        if checkExists is None:
+            error = 'Record does not exist. Please use add to create a new record.'
 
         if not date:
             error = 'Date is required.'
@@ -253,6 +283,7 @@ def edit_lookup():
 
         if error is not None:
             flash(error)
+            return redirect(url_for('records.edit_lookup'))
         else:
             return redirect(url_for('records.edit', editDate=date, editDepartment=department))
 
@@ -263,8 +294,13 @@ def edit_lookup():
 @login_required
 def edit():
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                            FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     date = request.args.get('editDate')
     department = request.args.get('editDepartment')
     idUnit = db.execute('''SELECT id, unitcount
@@ -346,19 +382,40 @@ def splitToArray(originalArray):
         array2.append(item[1])
     return (array1, array2)
 
+@bp.route('/resetSession', methods=('GET', 'POST'))
+@login_required
+def resetSession():
+    session['add_wc_field_num'] = []
+    session['add_wh_field_num'] = []
+    session['first_access_wfield'] = True
+    date = request.args.get('editDate')
+    department = request.args.get('editDepartment')
+    return redirect(url_for('records.edit', editDate=date, editDepartment=department))
+
 @bp.route('/delete', methods=('GET', 'POST'))
 @login_required
 def delete():
     db = get_db()
 
-    dnames = db.execute('''SELECT department_name
-                        FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
 
     if request.method == 'POST':
         date = request.form['deleteDate']
         department = request.form['deleteDepartment']
 
         error = None
+
+        checkExists = db.execute('''SELECT id FROM manufacturinglog
+                    WHERE logdate = ? AND department = ?;''', (date, department)).fetchone()
+
+        if checkExists is None:
+            error = 'Record does not exist.'
 
         if not date:
             error = 'Date is required.'
@@ -399,8 +456,13 @@ def delete():
 @login_required
 def delete_information():
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                        FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     infoDisplayHTML = Markup(request.args.get('infoDisplayHTML'))
     date = request.args.get('dateval')
     department = request.args.get('depval')
@@ -414,8 +476,13 @@ def delete_information():
 @login_required
 def delete_confirmation():
     db = get_db()
-    dnames = db.execute('''SELECT department_name
-                        FROM department_names''').fetchall()
+    if(g.user['role'] != "GroupLead"):
+        dnames = db.execute('''SELECT department_name
+                                FROM department_names;''').fetchall()
+    else:
+        dnames = db.execute('''SELECT department FROM group_lead_department
+                                WHERE id = ?;''', (g.user['id'],)).fetchall()
+
     date = request.args.get('deleteDate')
     department = request.args.get('deleteDepartment')
     infoDisplayString = request.args.get('infoDisplayHTML')
@@ -434,8 +501,6 @@ def delete_success():
     db = get_db()
     date = request.args.get('dateval')
     department = request.args.get('depval')
-    print(date)
-    print("gets to these")
     db.execute('''DELETE FROM manpowerlog
                     WHERE ddid = (SELECT id FROM manufacturinglog
                     WHERE logdate = ? AND  department = ?);''',

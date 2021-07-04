@@ -2,6 +2,9 @@
 
 {% block header %}
   <h1>{% block title %}Records{% endblock %}</h1>
+  {% if g.user %}
+    <a class="action" href="{{ url_for('records.index')}}">Back to Main Menu</a>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
@@ -36,6 +39,7 @@
     </div>
 
     <a href="{{ url_for('records.addWorker', newrnum=rnum) }}">Add Workers</a>
+    <a href="{{ url_for('records.add') }}">Remove Workers</a>
     <input type="submit" value="Submit">
   </form>
 {% endblock %}

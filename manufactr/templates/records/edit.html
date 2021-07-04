@@ -3,7 +3,7 @@
 {% block header %}
   <h1>{% block title %}Edit{% endblock %}</h1>
   {% if g.user %}
-    <a class="action" href="{{ url_for('records.edit')}}">Add</a>
+    <a class="action" href="{{ url_for('records.edit_lookup')}}">Back to Edit</a>
   {% endif %}
 {% endblock %}
 
@@ -51,6 +51,7 @@
     </div>
 
     <a href="{{ url_for('records.edit', editDate=dateval, editDepartment=depval) }}">Add Workers</a>
+    <a href="{{ url_for('records.resetSession', editDate=dateval, editDepartment=depval) }}">Remove Workers</a>
     <input type="submit" value="Save Changes">
   </form>
 {% endblock %}

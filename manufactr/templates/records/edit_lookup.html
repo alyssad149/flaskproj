@@ -3,7 +3,7 @@
 {% block header %}
   <h1>{% block title %}Edit{% endblock %}</h1>
   {% if g.user %}
-    <a class="action" href="{{ url_for('records.edit_lookup')}}">Add</a>
+    <a class="action" href="{{ url_for('records.index')}}">Back to Main Menu</a>
   {% endif %}
 {% endblock %}
 
