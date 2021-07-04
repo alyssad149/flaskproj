@@ -67,7 +67,7 @@ def resultsDisplay():
     checkedDepartment = request.args.getlist('checkedDepartment')
 
     db = get_db()
-
+    combinedList = map(lambda x: (startdate, enddate, x), checkedDepartment)
     # housekeeping
     (tempExist,) = db.execute('''SELECT COUNT(name) FROM sqlite_master WHERE type='table' AND name='date_range_id' ''').fetchone()
     if tempExist:
@@ -76,10 +76,11 @@ def resultsDisplay():
     if tempExist:
         db.execute('''DROP TABLE tempdata;''')
     db.execute('''CREATE TABLE date_range_id (id, date, department, units);''')
-    db.execute('''INSERT INTO date_range_id (id, date, department, units)
+    db.executemany('''INSERT INTO date_range_id (id, date, department, units)
                         SELECT id, logdate, department, unitcount
-                        FROM manufacturinglog WHERE logdate BETWEEN ? AND ?;''',
-                    (startdate, enddate))
+                        FROM manufacturinglog
+                        WHERE logdate BETWEEN ? AND ?
+                        AND department = ?;''', combinedList)
     db.execute("CREATE TABLE tempdata (date, department, units, worker_log_history, worker_count, worker_hours);")
     db.execute('''INSERT INTO tempdata (date, department, units, worker_log_history, worker_count, worker_hours)
                     SELECT date_range_id.date,
